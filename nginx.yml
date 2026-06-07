@@ -3,5 +3,6 @@
 - name: Global pre_tasks (compatible)
   hosts: all
   gather_facts: true
+  become: true
   roles:
     - { role: roles/nginx }

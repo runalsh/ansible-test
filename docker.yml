@@ -2,6 +2,7 @@
 - name: docker
   hosts: all
   gather_facts: true
+  become: true
   roles:
     - { role: roles/docker }
   
