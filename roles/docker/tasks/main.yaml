@@ -65,12 +65,7 @@
 - name: Install Docker and Docker Compose plugin ( debian )
   ansible.builtin.package:
     name:
-      # - docker.io
-      - docker-ce 
-      - docker-ce-cli 
-      - containerd.io 
-      - docker-buildx-plugin 
-      - docker-compose-plugin
+      - docker.io
     state: present
   notify: Restart Docker
   when: ansible_os_family == "Debian"
