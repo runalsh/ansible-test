@@ -1,0 +1,7 @@
+---
+- name: docker
+  hosts: all
+  gather_facts: true
+  roles:
+    - { role: roles/docker }
+  

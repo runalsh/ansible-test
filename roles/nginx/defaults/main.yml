@@ -1,0 +1,48 @@
+nginx_docker_image_tag: stable
+nginx_docker_repo: nginx
+nginx_host_config_path: /etc/nginx
+nginx_docker_config_path: "{{ nginx_host_config_path }}"
+nginx_remove_unmanaged_configs: true
+nginx_docker_cmd: ""
+nginx_with_prometheus: false
+
+nginx_ssl_certs: []
+nginx_configs:
+  - name: default.conf
+    value: |
+        server {
+            listen       80;
+            server_name  localhost;
+            location / {
+                root   /usr/share/nginx/html;
+                index  index.html index.htm;
+            }
+            error_page   500 502 503 504  /50x.html;
+            location = /50x.html {
+                root   /usr/share/nginx/html;
+            }
+        }
+
+nginx_service_name: nginx
+nginx_postrotate_cmd: docker exec {{ nginx_service_name }} nginx -s reopen
+nginx_logrotate_keep_logs: 7
+nginx_log_dir: /var/log/nginx
+nginx_log_rotate: |
+    {{ nginx_log_dir }}/*.log {
+        nomail
+        daily
+        dateext
+        dateformat .%Y%m%d
+        dateyesterday
+        rotate {{ nginx_logrotate_keep_logs }}
+        su root root
+        create 644 root root
+        missingok
+        notifempty
+        compress
+        delaycompress
+        sharedscripts
+        postrotate
+        {{ nginx_postrotate_cmd }}
+        endscript
+    }

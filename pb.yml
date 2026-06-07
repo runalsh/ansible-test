@@ -1,0 +1,20 @@
+---
+
+- name: Global pre_tasks (compatible)
+  hosts: all
+  gather_facts: true
+  pre_tasks:
+    - name: Debug OS family and distribution (extended)
+      ansible.builtin.debug:
+        msg:
+           - "ansible_os_family: {{ ansible_os_family | default('not set') }}"
+           - "real_ansible_os_family: {{ real_ansible_os_family | default('not set') }}"
+           - "ansible_distribution: {{ ansible_distribution | default('not set') }}"
+           - "ansible_distribution_release: {{ ansible_distribution_release | default('not set') }}"
+           - "ansible_facts['os_family']: {{ ansible_facts['os_family'] | default('not set') }}"
+           - "ansible_facts['distribution']: {{ ansible_facts['distribution'] | default('not set') }}"
+           - "ansible_facts['distribution_release']: {{ ansible_facts['distribution_release'] | default('not set') }}"
+           - "ansible_facts['distribution_version']: {{ ansible_facts['distribution_version'] | default('not set') }}"
+           - "ansible_facts['distribution_major_version']: {{ ansible_facts['distribution_major_version'] | default('not set') }}"
+           - "ansible_distribution_file_path: {{ ansible_distribution_file_path | default('not set') }}"
+           - "ansible_distribution_file_variety: {{ ansible_distribution_file_variety | default('not set') }}"

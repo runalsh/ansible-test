@@ -1,0 +1,11 @@
+- name: ping
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: ping
+      ansible.builtin.ping:
+    - name: check vars from awx
+      ansible.builtin.debug:
+        msg:
+            - "fist var: {{ firstvar }} "
+            - "fist var: {{ secondvar }} "

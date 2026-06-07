@@ -1,0 +1,104 @@
+---
+- name: Install prerequisites (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install prerequisites (Oracle Linux/RedHat)
+  ansible.builtin.dnf:
+    name:
+      - curl
+      - dnf-plugins-core
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Remove conflicting podman-docker (Oracle Linux specific)
+  ansible.builtin.dnf:
+    name: podman-docker
+    state: absent
+  when: ansible_os_family == "RedHat" and ansible_distribution == "OracleLinux"
+
+- name: Create keyring directory for Docker (Debian/Ubuntu)
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  when: ansible_os_family == "Debian"
+
+- name: Add Docker GPG key (Debian/Ubuntu)
+  ansible.builtin.get_url:
+    url: "{{ debian_docker_gpg_url }}"
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+  when: ansible_os_family == "Debian"
+
+- name: Add Docker GPG key (Oracle Linux/RedHat)
+  ansible.builtin.rpm_key:
+    key: "{{ redhat_docker_gpg_url }}"
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Add Docker repository (Debian/Ubuntu)
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ ansible_architecture }} signed-by=/etc/apt/keyrings/docker.asc] {{ debian_docker_repo_url }} {{ ansible_distribution_release }} stable"
+    state: present
+    filename: docker
+  when: ansible_os_family == "Debian"
+
+- name: Add Docker repository (Oracle Linux/RedHat)
+  ansible.builtin.yum_repository:
+    name: docker-ce-stable
+    description: Docker CE Stable
+    baseurl: "{{ redhat_docker_repo_url }}/$releasever/$basearch/stable"
+    gpgkey: "{{ redhat_docker_gpg_url }}"
+    gpgcheck: yes
+    enabled: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Install Docker and Docker Compose plugin ( debian )
+  ansible.builtin.package:
+    name:
+      - docker-ce
+      - docker-compose-plugin
+    state: present
+  notify: Restart Docker
+  when: ansible_os_family == "Debian"
+
+- name: Install Docker and Docker Compose plugin (astra)
+  ansible.builtin.package:
+    name:
+      - docker.io
+      - docker-compose-v2
+    state: present
+  notify: Restart Docker
+  when: ansible_os_family == "Astra Linux"
+
+- name: Install Docker and Docker Compose plugin (red*)
+  ansible.builtin.package:
+    name:
+      - docker-ce
+    state: present
+  notify: Restart Docker
+  when: ansible_os_family == "RedHat" or ansible_os_family == "RED" or ansible_os_family == "REDOS"
+
+- name: Ensure Docker service is started and enabled
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Add users to the docker group
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: yes
+  loop: "{{ docker_users }}"
+  when: docker_users | length > 0
